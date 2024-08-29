@@ -14,6 +14,18 @@ resource "google_project_iam_member" "terraform_sa_role" {
   member  = "serviceAccount:${google_service_account.terraform_sa.email}"
 }
 
+resource "google_project_iam_member" "kubernetes_admin_role" {
+  project = var.project_id
+  role    = "roles/container.admin"  # Kubernetes Engine Admin
+  member  = "serviceAccount:${google_service_account.terraform_sa.email}"
+}
+
+resource "google_project_iam_member" "compute_admin_role" {
+  project = var.project_id
+  role    = "roles/compute.admin"  # Compute Admin
+  member  = "serviceAccount:${google_service_account.terraform_sa.email}"
+}
+
 resource "google_service_account_key" "terraform_sa_key" {
   service_account_id = google_service_account.terraform_sa.name
   private_key_type   = "JSON"
