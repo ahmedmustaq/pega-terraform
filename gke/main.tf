@@ -3,6 +3,22 @@ provider "google" {
   region  = var.region
 }
 
+resource "google_service_account" "terraform_sa" {
+  account_id   = "terraform-sa"
+  display_name = "Terraform Service Account"
+}
+
+resource "google_project_iam_member" "terraform_sa_role" {
+  project = var.project_id
+  role    = "roles/editor"  # Assign the "Editor" role or any other roles you need
+  member  = "serviceAccount:${google_service_account.terraform_sa.email}"
+}
+
+resource "google_service_account_key" "terraform_sa_key" {
+  service_account_id = google_service_account.terraform_sa.name
+  private_key_type   = "JSON"
+}
+
 resource "google_container_cluster" "primary" {
   name     = var.cluster_name
   location = var.region
@@ -32,3 +48,4 @@ resource "google_container_node_pool" "primary_nodes" {
     ]
   }
 }
+
