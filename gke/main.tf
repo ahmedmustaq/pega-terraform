@@ -47,7 +47,7 @@ resource "google_container_cluster" "primary" {
   depends_on = [google_project_service.enable_kubernetes_api]	
   name     = var.cluster_name
   location = var.region
-
+  deletion_protection = false #Not for production
   initial_node_count = 1
 
   node_config {
