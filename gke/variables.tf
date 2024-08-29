@@ -1,6 +1,6 @@
 variable "project_id" {
   description = "The project ID where the GKE cluster will be created"
-  default     = "PegaJenkins"
+  default     = "pegajenkins"
 }
 
 variable "region" {
