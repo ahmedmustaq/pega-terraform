@@ -3,6 +3,18 @@ provider "google" {
   region  = var.region
 }
 
+# Enable the Kubernetes Engine API
+resource "google_project_service" "enable_kubernetes_api" {
+  project = var.project_id
+  service = "container.googleapis.com"
+}
+
+# (Optional) Enable other related APIs if needed
+resource "google_project_service" "enable_compute_api" {
+  project = var.project_id
+  service = "compute.googleapis.com"
+}
+
 resource "google_service_account" "terraform_sa" {
   account_id   = "terraform-sa"
   display_name = "Terraform Service Account"
