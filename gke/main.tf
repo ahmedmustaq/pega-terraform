@@ -28,7 +28,7 @@ resource "google_project_iam_member" "compute_admin_role" {
 
 resource "google_service_account_key" "terraform_sa_key" {
   service_account_id = google_service_account.terraform_sa.name
-  private_key_type   = "JSON"
+  private_key_type   = "TYPE_GOOGLE_CREDENTIALS_FILE"
 }
 
 resource "google_container_cluster" "primary" {
