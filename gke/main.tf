@@ -14,11 +14,7 @@ resource "google_project_service" "enable_kubernetes_api" {
   project = var.project_id
   service = "container.googleapis.com"
   disable_dependent_services = false 
-     # Prevent this resource from being destroyed
-	  lifecycle {
-		prevent_destroy = true
-	  }
-}
+    
 
 # (Optional) Enable other related APIs if needed
 resource "google_project_service" "enable_compute_api" {
@@ -26,9 +22,7 @@ resource "google_project_service" "enable_compute_api" {
   service = "compute.googleapis.com"
   disable_dependent_services = false
   # Prevent this resource from being destroyed
-  lifecycle {
-    prevent_destroy = true
-  }
+ 
 }
 
 resource "google_service_account" "terraform_sa" {
