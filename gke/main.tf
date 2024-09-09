@@ -1,16 +1,13 @@
 terraform {
   backend "gcs" {
     bucket  = "terraform-pega"
-    prefix  = "terraform/state"
+    prefix  = "terraform/gke/state"
   }
 }
 provider "google" {
   project = var.project_id
   region  = var.region
 }
-
-
-
 
 
 resource "google_container_cluster" "primary" {
