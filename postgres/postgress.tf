@@ -19,6 +19,7 @@ resource "google_compute_instance" "docker_postgres_pljava" {
   boot_disk {
     initialize_params {
       image = "ubuntu-2004-focal-v20210927"
+	  size = 30
     }
   }
 
@@ -44,12 +45,21 @@ resource "google_compute_instance" "docker_postgres_pljava" {
       sudo docker run -d \
         --name postgres-pljava \
         -e POSTGRES_USER=postgres \
-        -e POSTGRES_PASSWORD=postgres \
+        -e POSTGRES_PASSWORD=america@786 \
         -e POSTGRES_DB=postgres \
         -p 5432:5432 \
         -v /var/lib/postgresql-persist/data:/var/lib/postgresql/data \
         pegasystems/postgres-pljava-openjdk:11
-
+	   # Download Pega dump file from Google Cloud Storage bucket
+      gsutil cp gs://terraform-pega/pega.dump /tmp/pega.dump
+	  # Wait for the container to be fully ready
+      sleep 10
+	  # Copy pega.dump into the container's filesystem
+      sudo docker cp /tmp/pega.dump postgres-pljava:/var/lib/postgresql/data/pega.dump
+	  
+	  sudo docker exec -i postgres-pljava pg_restore -U postgres -d postgres /var/lib/postgresql/data/pega.dump
+	  
+	  
       # Expose PostgreSQL port
       sudo ufw allow 5432
     EOF
