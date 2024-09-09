@@ -1,20 +1,15 @@
-terraform {
-  backend "gcs" {
-    bucket  = "terraform-pega"
-    prefix  = "terraform/postgres"
-  }
-}
 provider "google" {
   project = var.project_id
   region  = var.region
 }
 
-resource "google_compute_instance" "default" {
-  name         = "postgres-instance"
+resource "google_compute_instance" "docker_postgres_pljava" {
+  name         = "docker-postgres-pljava-instance"
   machine_type = var.machine_type
   zone         = var.zone
+  allow_stopping_for_update = true
 
-  # Define the boot disk and OS image
+  # Define the boot disk and OS image (Ubuntu in this case)
   boot_disk {
     initialize_params {
       image = "ubuntu-2004-focal-v20210927"
@@ -27,25 +22,42 @@ resource "google_compute_instance" "default" {
     access_config {}
   }
 
-  # Metadata for startup script to install PostgreSQL
+  # Metadata for startup script to install Docker and run the PostgreSQL-PL/Java container
   metadata = {
     startup-script = <<-EOF
       #!/bin/bash
+      # Update package list and install Docker
       sudo apt-get update
-      sudo apt-get install -y postgresql postgresql-contrib
-      sudo systemctl start postgresql
-      sudo systemctl enable postgresql
-	  # Set a password for the postgres user
-      sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres';"
+      sudo apt-get install -y docker.io
+
+      # Enable and start Docker service
+      sudo systemctl enable docker
+      sudo systemctl start docker
+
+      # Run PostgreSQL-PL/Java container using the pega/postgres-pljava-openjdk:11 image
+      sudo docker run -d \
+        --name postgres-pljava \
+        -e POSTGRES_USER=postgres \
+        -e POSTGRES_PASSWORD=postgres \
+        -e POSTGRES_DB=postgres \
+        -p 5432:5432 \
+        -v /var/lib/postgresql-persist/data:/var/lib/postgresql/data \
+        pegasystems/postgres-pljava-openjdk:11
+
+      # Expose PostgreSQL port
+      sudo ufw allow 5432
     EOF
   }
+
+  tags = ["postgres-server"]
 
   service_account {
     scopes = ["https://www.googleapis.com/auth/cloud-platform"]
   }
 }
 
-resource "google_compute_firewall" "postgres" {
+# Optional: Firewall rule to allow external access to PostgreSQL
+resource "google_compute_firewall" "allow_postgres" {
   name    = "allow-postgres"
   network = "default"
 
@@ -54,22 +66,6 @@ resource "google_compute_firewall" "postgres" {
     ports    = ["5432"]
   }
 
-  source_ranges = ["0.0.0.0/0"]
+  source_ranges = ["0.0.0.0/0"]  # Restrict this for better security
   target_tags   = ["postgres-server"]
-}
-
-resource "google_service_account_key" "terraform_sa_key" {
-  service_account_id = google_service_account.terraform_sa.name
-  private_key_type   = "TYPE_GOOGLE_CREDENTIALS_FILE"
-}
-
-resource "google_project_iam_member" "compute_admin_role" {
-  project = var.project_id
-  role    = "roles/compute.admin"  # Compute Admin
-  member  = "serviceAccount:${google_service_account.terraform_sa.email}"
-}
-
-resource "google_service_account" "terraform_sa" {
-  account_id   = "terraform-sa"
-  display_name = "Terraform Service Account"
 }
