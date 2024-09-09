@@ -20,6 +20,6 @@ output "service_account_email" {
 
 output "service_account_private_key" {
   description = "The private key of the created service account"
-  value       = google_service_account_key.terraform_sa_key.private_key
+  value       = base64decode(google_service_account_key.terraform_sa_key.private_key)
   sensitive   = true
 }
