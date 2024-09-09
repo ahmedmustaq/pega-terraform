@@ -20,7 +20,7 @@ resource "google_project_service" "enable_kubernetes_api" {
 resource "google_project_service" "enable_compute_api" {
   project = var.project_id
   service = "compute.googleapis.com"
-  disable_dependent_services = false
+  disable_dependent_services = true
   # Prevent this resource from being destroyed
  
 }
