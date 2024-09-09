@@ -1,0 +1,24 @@
+variable "project_id" {
+  description = "The project ID where the GKE cluster will be created"
+  default     = "pegajenkins"
+}
+
+variable "region" {
+  description = "The region where the GKE cluster will be created"
+  default     = "eu-west-2"
+}
+
+variable "cluster_name" {
+  description = "The name of the GKE cluster"
+  default     = "pega-gcp-cluster"
+}
+
+variable "machine_type" {
+  description = "The machine type to use for nodes"
+  default     = "t3.medium"
+}
+
+variable "node_count" {
+  description = "The number of nodes in the node pool"
+  default     = 1
+}
