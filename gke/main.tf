@@ -18,7 +18,7 @@ resource "google_service_account_key" "terraform_sa_key" {
 }
 
 resource "google_container_cluster" "primary" {
-  depends_on = [google_project_service.enable_kubernetes_api]	
+
   name     = var.cluster_name
   location = var.region
   deletion_protection = false
@@ -35,7 +35,7 @@ resource "google_container_cluster" "primary" {
 }
 
 resource "google_container_node_pool" "primary_nodes" {
-  depends_on = [google_project_service.enable_kubernetes_api]		
+
   name       = "primary-node-pool"
   cluster    = google_container_cluster.primary.name
   location   = google_container_cluster.primary.location
