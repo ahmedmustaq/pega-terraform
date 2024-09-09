@@ -1,3 +1,9 @@
+terraform {
+  backend "gcs" {
+    bucket  = "terraform-pega"
+    prefix  = "terraform/postgres"
+  }
+}
 provider "google" {
   project = var.project_id
   region  = var.region
