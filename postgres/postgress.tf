@@ -82,6 +82,6 @@ resource "google_compute_firewall" "allow_postgres" {
     ports    = ["5432"]
   }
 
-  source_ranges = ["0.0.0.0/0"]  # Restrict this for better security
+  source_ranges = ["10.84.0.0/14"]  # Restrict this for better security only kubernetes
   target_tags   = ["postgres-server"]
 }
