@@ -23,3 +23,7 @@ variable "node_count" {
   description = "The number of nodes in the node pool"
   default     = 1
 }
+variable "subnet_ids" {
+  description = "The subnet_ids of aws"
+  default     = [aws_subnet.public_subnet_1.id, aws_subnet.public_subnet_2.id]
+}
