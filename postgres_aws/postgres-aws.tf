@@ -78,7 +78,7 @@ resource "aws_route_table_association" "public" {
 
 # Create EC2 Instance to run PostgreSQL PL/Java
 resource "aws_instance" "docker_postgres_pljava" {
-  ami                         = "ami-0c55b159cbfafe1f0"  # Replace with appropriate AMI (Ubuntu 20.04)
+  ami                         = "ami-0f83016656f175553"  # Replace with appropriate AMI (Ubuntu 20.04)
   instance_type               = var.instance_type
   key_name                    = var.key_name  # Make sure to have an EC2 key pair
   subnet_id                   = aws_subnet.public_subnet.id
