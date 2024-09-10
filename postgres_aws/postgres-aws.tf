@@ -80,7 +80,7 @@ resource "aws_security_group" "allow_postgres" {
 resource "aws_instance" "docker_postgres_pljava" {
   ami                         = "ami-0f83016656f175553"  # Replace with appropriate AMI (Ubuntu 20.04)
   instance_type               = var.instance_type
-  key_name                    = var.key_name  # Ensure you have an EC2 key pair
+ 
   subnet_id                   = aws_subnet.public_subnet.id
   vpc_security_group_ids      = [aws_security_group.allow_postgres.id]  # Use 'id' instead of 'name'
   associate_public_ip_address = true
