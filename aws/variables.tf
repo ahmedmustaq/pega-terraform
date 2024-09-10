@@ -21,6 +21,6 @@ variable "instance_type" {
 
 variable "node_count" {
   description = "The number of nodes in the node pool"
-  default     = 1
+  default     = 2
 }
 
