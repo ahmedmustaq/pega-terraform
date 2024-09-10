@@ -2,6 +2,7 @@ terraform {
   backend "s3" {
     bucket = "terraform-pega"
     key    = "terraform/eks/state"
+	region = var.region
   }
 }
 

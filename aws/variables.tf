@@ -5,6 +5,7 @@ variable "project_id" {
 
 variable "region" {
   description = "The region where the aws cluster will be created"
+  type = string
   default     = "eu-west-2"
 }
 
