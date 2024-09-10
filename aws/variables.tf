@@ -14,7 +14,7 @@ variable "cluster_name" {
   default     = "pega-gcp-cluster"
 }
 
-variable "machine_type" {
+variable "instance_type" {
   description = "The machine type to use for nodes"
   default     = "t3.medium"
 }

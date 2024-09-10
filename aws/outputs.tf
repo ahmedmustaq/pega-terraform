@@ -18,7 +18,4 @@ output "service_account_arn" {
   value       = aws_iam_role.terraform_sa.arn
 }
 
-output "service_account_role_policy_arn" {
-  description = "The ARN of the IAM policy attached to the service account role"
-  value       = aws_iam_role_policy_attachment.terraform_sa_policy.policy_arn
-}
+
