@@ -13,9 +13,6 @@ output "kubernetes_cluster_version" {
   value       = aws_eks_cluster.primary.version
 }
 
-output "service_account_arn" {
-  description = "The ARN of the created IAM role for the service account"
-  value       = aws_iam_role.terraform_sa.arn
-}
+
 
 
