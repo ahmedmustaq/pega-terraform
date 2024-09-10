@@ -1,25 +1,24 @@
 output "kubernetes_cluster_name" {
-  description = "The name of the GKE cluster"
-  value       = google_container_cluster.primary.name
+  description = "The name of the EKS cluster"
+  value       = aws_eks_cluster.primary.name
 }
 
 output "kubernetes_cluster_endpoint" {
-  description = "The endpoint of the GKE cluster"
-  value       = google_container_cluster.primary.endpoint
+  description = "The endpoint of the EKS cluster"
+  value       = aws_eks_cluster.primary.endpoint
 }
 
-output "kubernetes_cluster_master_version" {
-  description = "The master version of the GKE cluster"
-  value       = google_container_cluster.primary.master_version
+output "kubernetes_cluster_version" {
+  description = "The Kubernetes version of the EKS cluster"
+  value       = aws_eks_cluster.primary.version
 }
 
-output "service_account_email" {
-  description = "The email of the created service account"
-  value       = google_service_account.terraform_sa.email
+output "service_account_arn" {
+  description = "The ARN of the created IAM role for the service account"
+  value       = aws_iam_role.terraform_sa.arn
 }
 
-output "service_account_private_key" {
-  description = "The private key of the created service account"
-  value       = google_service_account_key.terraform_sa_key.private_key
-  sensitive   = true
+output "service_account_role_policy_arn" {
+  description = "The ARN of the IAM policy attached to the service account role"
+  value       = aws_iam_role_policy_attachment.terraform_sa_policy.policy_arn
 }
