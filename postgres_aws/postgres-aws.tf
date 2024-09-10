@@ -2,31 +2,6 @@ provider "aws" {
   region = var.region
 }
 
-# Create a security group for the PostgreSQL instance
-resource "aws_security_group" "allow_postgres" {
-  name        = "allow-postgres"
-  description = "Allow PostgreSQL inbound traffic"
-  vpc_id      = aws_vpc.main.id
-
-  ingress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # Restrict to specific range, adjust as per requirement
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "allow-postgres"
-  }
-}
-
 # Create VPC
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
@@ -76,16 +51,40 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
+# Create a security group for the PostgreSQL instance
+resource "aws_security_group" "allow_postgres" {
+  name        = "allow-postgres"
+  description = "Allow PostgreSQL inbound traffic"
+  vpc_id      = aws_vpc.main.id  # Ensure it's referencing the correct VPC
+
+  ingress {
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]  # Adjust this CIDR block to restrict access if needed
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "allow-postgres"
+  }
+}
+
 # Create EC2 Instance to run PostgreSQL PL/Java
 resource "aws_instance" "docker_postgres_pljava" {
   ami                         = "ami-0f83016656f175553"  # Replace with appropriate AMI (Ubuntu 20.04)
   instance_type               = var.instance_type
-  key_name                    = var.key_name  # Make sure to have an EC2 key pair
+  key_name                    = var.key_name  # Ensure you have an EC2 key pair
   subnet_id                   = aws_subnet.public_subnet.id
-  security_groups             = [aws_security_group.allow_postgres.name]
+  vpc_security_group_ids      = [aws_security_group.allow_postgres.id]  # Use 'id' instead of 'name'
   associate_public_ip_address = true
 
-  # Block device mapping for instance storage
   root_block_device {
     volume_size = 30
   }
@@ -147,6 +146,7 @@ output "postgres_url" {
   value       = "postgres://postgres:america@786@${aws_instance.docker_postgres_pljava.public_ip}:5432/postgres"
 }
 
+# Variables
 variable "region" {
   description = "The AWS region to deploy resources in"
   default     = "eu-west-2"
