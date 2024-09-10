@@ -162,7 +162,4 @@ variable "instance_type" {
   default     = "t2.medium"
 }
 
-variable "key_name" {
-  description = "The name of the EC2 Key Pair for SSH access"
-  default     = "my-key-pair"
-}
+
