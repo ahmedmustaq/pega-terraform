@@ -1,15 +1,15 @@
 variable "project_id" {
-  description = "The project ID where the GKE cluster will be created"
+  description = "The project ID where the aws cluster will be created"
   default     = "pegajenkins"
 }
 
 variable "region" {
-  description = "The region where the GKE cluster will be created"
+  description = "The region where the aws cluster will be created"
   default     = "eu-west-2"
 }
 
 variable "cluster_name" {
-  description = "The name of the GKE cluster"
+  description = "The name of the aws cluster"
   default     = "pega-gcp-cluster"
 }
 
