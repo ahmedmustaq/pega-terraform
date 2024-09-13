@@ -10,6 +10,28 @@ provider "aws" {
   region = var.region
 }
 
+# Data source to reference the existing VPC
+data "aws_vpc" "default" {
+  id = "vpc-0f3367c2875db3056"  # Replace with your actual VPC ID
+}
+
+# Data sources to reference the existing subnets
+data "aws_subnet" "subnet_1" {
+  id = "subnet-012790848136eab91"  # Replace with your actual subnet ID
+}
+
+data "aws_subnet" "subnet_2" {
+  id = "subnet-02a7a49446dc51f76"  # Replace with your actual subnet ID
+}
+
+data "aws_subnet" "subnet_3" {
+  id = "subnet-04b456fabf695a095"  # Replace with your actual subnet ID
+}
+
+# Data source to reference the existing security group
+data "aws_security_group" "eks_security_group" {
+  id = "sg-01a444757bf6a08ac"  # Replace with your actual security group ID
+}
 
 # EKS Cluster IAM Role
 resource "aws_iam_role" "eks_cluster_role" {
@@ -59,46 +81,39 @@ resource "aws_iam_role" "eks_node_group_role" {
 
 # EKS Cluster
 resource "aws_eks_cluster" "pega_cluster" {
- kubernetes_network_config {
+  name     = var.cluster_name
+  role_arn = aws_iam_role.eks_cluster_role.arn
+  version  = "1.30"
+  
+   kubernetes_network_config {
     ip_family         = "ipv4"
     service_ipv4_cidr = "10.100.0.0/16"
   }
 
-  name     = var.cluster_name
-  role_arn = "arn:aws:iam::329599638099:role/eks-cluster-role"
-  version  = "1.30"
-
   vpc_config {
-    endpoint_private_access = "true"
-    endpoint_public_access  = "true"
-    public_access_cidrs     = ["0.0.0.0/0"]
-    security_group_ids      = ["sg-01a444757bf6a08ac"]
-    subnet_ids              = ["${data.terraform_remote_state.subnet.outputs.aws_subnet_tfer--subnet-012790848136eab91_id}", "${data.terraform_remote_state.subnet.outputs.aws_subnet_tfer--subnet-02a7a49446dc51f76_id}", "${data.terraform_remote_state.subnet.outputs.aws_subnet_tfer--subnet-04b456fabf695a095_id}"]
+    subnet_ids         = [data.aws_subnet.subnet_1.id, data.aws_subnet.subnet_2.id, data.aws_subnet.subnet_3.id]
+    security_group_ids = [data.aws_security_group.eks_security_group.id]
+    endpoint_public_access = true
+    endpoint_private_access = true
   }
 }
 
 # EKS Node Group
-resource "aws_eks_node_group" "tfer--pega-node" {
-  ami_type        = "AL2_x86_64"
-  capacity_type   = "ON_DEMAND"
-  cluster_name    = "${aws_eks_cluster.tfer--pega-cluster.name}"
-  disk_size       = "20"
+resource "aws_eks_node_group" "pega_node_group" {
+  cluster_name    = var.cluster_name
+  node_group_name = var.nodegroup_name
+  node_role_arn   = aws_iam_role.eks_node_group_role.arn
   instance_types  = ["t3.medium"]
-  node_group_name =  var.node_group_name
-  node_role_arn   = "arn:aws:iam::329599638099:role/eks-node-group-role"
-  release_version = "1.30.2-20240904"
 
   scaling_config {
-    desired_size = "2"
-    max_size     = "2"
-    min_size     = "2"
+    desired_size = 2
+    max_size     = 3
+    min_size     = 1
   }
 
-  subnet_ids = ["subnet-012790848136eab91", "subnet-02a7a49446dc51f76", "subnet-04b456fabf695a095"]
+  subnet_ids = [data.aws_subnet.subnet_1.id, data.aws_subnet.subnet_2.id, data.aws_subnet.subnet_3.id]
 
-  update_config {
-    max_unavailable = "1"
+  tags = {
+    Name = var.nodegroup_name
   }
-
-  version = "1.30"
 }
