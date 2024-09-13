@@ -10,169 +10,105 @@ provider "aws" {
   region = var.region
 }
 
-# VPC creation with DNS support and hostnames enabled
-resource "aws_vpc" "main" {
-  cidr_block           = "10.0.0.0/16"
-  enable_dns_support   = true
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "main-vpc"
-  }
+# Data source to reference the existing VPC
+data "aws_vpc" "main" {
+  id = "tfer--vpc-0f3367c2875db3056"  # Replace with your actual VPC ID
 }
 
-# Subnet creation (3 subnets for high availability)
-resource "aws_subnet" "public_subnet_1" {
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = "10.0.1.0/24"
-  availability_zone = "eu-west-2a"
-  map_public_ip_on_launch = true
-
-  tags = {
-    Name = "public-subnet-1"
-  }
+# Data sources to reference the existing subnets
+data "aws_subnet" "subnet_1" {
+  id = "tfer--subnet-012790848136eab91"  # Replace with your actual subnet ID
 }
 
-resource "aws_subnet" "public_subnet_2" {
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = "10.0.2.0/24"
-  availability_zone = "eu-west-2b"
-  map_public_ip_on_launch = true
-
-  tags = {
-    Name = "public-subnet-2"
-  }
+data "aws_subnet" "subnet_2" {
+  id = "tfer--subnet-02a7a49446dc51f76"  # Replace with your actual subnet ID
 }
 
-resource "aws_subnet" "public_subnet_3" {
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = "10.0.3.0/24"
-  availability_zone = "eu-west-2c"
-  map_public_ip_on_launch = true
-
-  tags = {
-    Name = "public-subnet-3"
-  }
+data "aws_subnet" "subnet_3" {
+  id = "tfer--subnet-04b456fabf695a095"  # Replace with your actual subnet ID
 }
 
-# Security Group for EKS cluster and nodes
-resource "aws_security_group" "eks_sg" {
-  vpc_id = aws_vpc.main.id
-
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "eks-security-group"
-  }
+# Data source to reference the existing security group
+data "aws_security_group" "eks_security_group" {
+  id = "sg-01a444757bf6a08ac"  # Replace with your actual security group ID
 }
 
-# IAM Role for EKS Cluster
-resource "aws_iam_role" "eks_role" {
-  name = "eks-cluster-role"
-
+# EKS Cluster IAM Role
+resource "aws_iam_role" "eks_cluster_role" {
   assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          Service = "eks.amazonaws.com"
-        }
-        Action = "sts:AssumeRole"
+    Version = "2012-10-17",
+    Statement = [{
+      Effect = "Allow",
+      Principal = {
+        Service = "eks.amazonaws.com"
       },
-    ]
+      Action = "sts:AssumeRole"
+    }]
   })
+
+  managed_policy_arns = [
+    "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+  ]
 
   tags = {
     Name = "eks-cluster-role"
   }
 }
 
-# Attach policies to EKS cluster role
-resource "aws_iam_role_policy_attachment" "eks_policy" {
-  role       = aws_iam_role.eks_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-}
-
-# IAM Role for EKS Node Group
-resource "aws_iam_role" "node_group_role" {
-  name = "eks-node-group-role"
-
+# EKS Node Group IAM Role
+resource "aws_iam_role" "eks_node_group_role" {
   assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          Service = "ec2.amazonaws.com"
-        }
-        Action = "sts:AssumeRole"
+    Version = "2012-10-17",
+    Statement = [{
+      Effect = "Allow",
+      Principal = {
+        Service = "ec2.amazonaws.com"
       },
-    ]
+      Action = "sts:AssumeRole"
+    }]
   })
+
+  managed_policy_arns = [
+    "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
+    "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
+    "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+  ]
 
   tags = {
     Name = "eks-node-group-role"
   }
 }
 
-# Attach necessary policies for the node group
-resource "aws_iam_role_policy_attachment" "node_group_policy" {
-  role       = aws_iam_role.node_group_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-}
-
-resource "aws_iam_role_policy_attachment" "node_group_cni_policy" {
-  role       = aws_iam_role.node_group_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
-}
-
-resource "aws_iam_role_policy_attachment" "node_group_ec2_readonly_policy" {
-  role       = aws_iam_role.node_group_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-}
-
 # EKS Cluster
-resource "aws_eks_cluster" "primary" {
+resource "aws_eks_cluster" "pega_cluster" {
   name     = var.cluster_name
-  role_arn = aws_iam_role.eks_role.arn
-  version  = "1.30"  # Explicitly specify the Kubernetes version
+  role_arn = aws_iam_role.eks_cluster_role.arn
+  version  = "1.30"
 
   vpc_config {
-    subnet_ids         = [aws_subnet.public_subnet_1.id, aws_subnet.public_subnet_2.id, aws_subnet.public_subnet_3.id]
-    security_group_ids = [aws_security_group.eks_sg.id]
+    subnet_ids         = [data.aws_subnet.subnet_1.id, data.aws_subnet.subnet_2.id, data.aws_subnet.subnet_3.id]
+    security_group_ids = [data.aws_security_group.eks_security_group.id]
     endpoint_public_access = true
-    endpoint_private_access = false
+    endpoint_private_access = true
   }
-
-  depends_on = [aws_iam_role_policy_attachment.eks_policy]
 }
 
 # EKS Node Group
-resource "aws_eks_node_group" "primary_nodes" {
-  cluster_name    = aws_eks_cluster.primary.name
-  node_group_name = "primary-node-group"
-  node_role_arn   = aws_iam_role.node_group_role.arn
-  subnet_ids      = [aws_subnet.public_subnet_1.id, aws_subnet.public_subnet_2.id, aws_subnet.public_subnet_3.id]
+resource "aws_eks_node_group" "pega_node_group" {
+  cluster_name    = var.nodegroup_name
+  node_group_name = "pega-node-group"
+  node_role_arn   = aws_iam_role.eks_node_group_role.arn
   instance_types  = ["t3.medium"]
 
   scaling_config {
     desired_size = 2
     max_size     = 3
-    min_size     = 2
+    min_size     = 1
   }
 
-  depends_on = [aws_eks_cluster.primary]
+  subnet_ids = [data.aws_subnet.subnet_1.id, data.aws_subnet.subnet_2.id, data.aws_subnet.subnet_3.id]
+
+  tags = {
+    Name = "pega-node-group"
+  }
 }

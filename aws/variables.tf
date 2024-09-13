@@ -11,7 +11,12 @@ variable "region" {
 
 variable "cluster_name" {
   description = "The name of the aws cluster"
-  default     = "pega-gcp-cluster"
+  default     = "pega-aws-cluster"
+}
+
+variable "nodegroup_name" {
+  description = "The name of the aws cluster"
+  default     = "pega-cluster"
 }
 
 variable "instance_type" {
