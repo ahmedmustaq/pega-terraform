@@ -1,14 +1,13 @@
+provider "google" {
+  project = var.project_id
+  region  = var.region
+}
 terraform {
   backend "gcs" {
     bucket  = "terraform-pega"
     prefix  = "terraform/gke/state"
   }
 }
-provider "google" {
-  project = var.project_id
-  region  = var.region
-}
-
 # Enable the Kubernetes Engine API
 resource "google_project_service" "enable_kubernetes_api" {
   depends_on = [google_project_service.enable_compute_api]
