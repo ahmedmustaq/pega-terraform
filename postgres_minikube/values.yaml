@@ -1,0 +1,21 @@
+replicaCount: 1
+postgres:
+  name: postgres
+image:
+  repository: pegasystems/postgres-pljava-openjdk
+  tag: "11"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 5432
+
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  mountPath: var/lib/postgresql-persist
+  size: 10Gi
+
+resources: {}
+serviceAccount:
+  create: true

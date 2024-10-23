@@ -1,0 +1,23 @@
+{{ if (eq (include "performInstall" .) "true") -}}
+# Config map used for Pega Installation
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ template "pegaInstallEnvironmentConfig" }}
+  namespace: {{ .Release.Namespace }}
+{{ include "pega.installer.environment.config" . }}
+  # Creates a new System and replaces this with default system
+  SYSTEM_NAME: {{ .Values.systemName }}
+  # Creates the system with this production level
+  PRODUCTION_LEVEL: {{ .Values.productionLevel | quote}}
+  # Run the Static Assembler ('true' to run, 'false' to not run)
+  STATIC_ASSEMBLER: {{ .Values.assembler | quote}}
+  # Bypass automatically truncating PR_SYS_UPDATESCACHE . Default is false.
+  BYPASS_TRUNCATE_UPDATESCACHE: {{ .Values.bypassTruncateUpdatescache | quote }}
+  # Maximum Idle Thread.Default is 5
+  MAX_IDLE: {{ .Values.threads.maxIdle | quote }}
+  # Maximum Thread Wait.Default is -1
+  MAX_WAIT: {{ .Values.threads.maxWait | quote }}
+  # Maximum Active Thread.Default is 10
+  MAX_ACTIVE: {{ .Values.threads.maxActive | quote }}
+{{ end }}

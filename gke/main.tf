@@ -16,6 +16,13 @@ resource "google_project_service" "enable_kubernetes_api" {
  
 }
 
+resource "google_project_service" "enable_cloud_resource_manager" {
+  depends_on = [google_project_service.enable_compute_api]
+  project = var.project_id
+  service = "cloudresourcemanager.googleapis.com"
+}
+
+
 # (Optional) Enable other related APIs if needed
 resource "google_project_service" "enable_compute_api" {
   project = var.project_id

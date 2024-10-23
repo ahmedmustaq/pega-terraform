@@ -1,0 +1,46 @@
+{{ if (eq (include "performUpgrade" .) "true") -}}
+# Config map used for common configuration between pre-upgrades, post-upgrades and upgrades
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ template "pegaUpgradeEnvironmentConfig" }}
+  namespace: {{ .Release.Namespace }}
+{{ include "pega.installer.environment.config" . }}
+  # Type of Upgrade
+  UPGRADE_TYPE: {{ .Values.upgrade.upgradeType }}
+  # custom upgrade steps
+{{- if .Values.upgrade.upgradeSteps }}
+  UPGRADE_STEP: {{ .Values.upgrade.upgradeSteps }}
+{{- end }}
+  PEGA_REST_SERVER_URL: {{ include "pegaRestURL" $ | quote }}
+{{- if .Values.upgrade.pegaRESTUsername }}
+  PEGA_REST_USERNAME: {{ .Values.upgrade.pegaRESTUsername }}
+{{- end }}
+{{- if .Values.upgrade.pegaRESTPassword }}
+  PEGA_REST_PASSWORD: {{ .Values.upgrade.pegaRESTPassword }}
+{{- end }}
+{{- if .Values.upgrade.targetRulesSchema }}
+  # Target Rules Schema name
+  TARGET_RULES_SCHEMA: {{ .Values.upgrade.targetRulesSchema }}
+{{- end }}
+{{- if .Values.upgrade.targetDataSchema }}
+  # Target Data Schema name
+  TARGET_DATA_SCHEMA: {{ .Values.upgrade.targetDataSchema }}
+{{- end }}
+{{- if .Values.zos.zosProperties }}
+  # The location of the db2zos site specific properties file. Only used if the target system is a db2zos database
+  TARGET_ZOS_PROPERTIES: {{ .Values.zos.zosProperties }}
+{{- end }}
+  # The commit count to use when loading database tables
+  MIGRATION_DB_LOAD_COMMIT_RATE: {{ .Values.upgrade.dbLoadCommitRate | quote }}
+  # Update existing application will be run if this property is set to true
+  UPDATE_EXISTING_APPLICATIONS: {{ .Values.upgrade.updateExistingApplications | quote }}
+  # Runs the Update Applications Schema utility to update the cloned Rule, Data, Work and Work History tables with the schema changes in the latest base tables if this property is set to true
+  UPDATE_APPLICATIONS_SCHEMA: {{ .Values.upgrade.updateApplicationsSchema | quote }}
+  # Generate and execute an SQL script to clean old rulesets and their rules from the system if this property is set to true
+  RUN_RULESET_CLEANUP: {{ .Values.upgrade.runRulesetCleanup | quote }}
+  # Rebuild Database Rules Indexes after Rules Load to improve Database Access Performance
+  REBUILD_INDEXES:  {{ .Values.upgrade.rebuildIndexes | quote }}
+  # Automatic resume parameter to support resuming rules_upgrade from point of failure
+  AUTOMATIC_RESUME_ENABLED: {{ .Values.upgrade.automaticResumeEnabled | quote }}
+{{ end }}

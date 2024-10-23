@@ -1,0 +1,55 @@
+---
+global:
+  provider: "k8s"
+
+  customerDeploymentId:
+
+  actions:
+    execute: "deploy"
+  jdbc:
+
+    url: "jdbc:postgresql://10.106.49.52:5432/postgres"
+
+    driverClass: "org.postgresql.Driver"
+
+    dbType: "postgres"
+
+    username: "postgres"
+    password: "postgres"
+
+
+  docker:
+
+    pega:
+      image: "pega-local-k8:latest"
+
+
+  pegaDiagnosticUser: ""
+  pegaDiagnosticPassword: ""
+
+  tier:
+    - name: "minikube"
+      nodeType: "WebUser"
+
+      service:
+        httpEnabled: true
+        port: 80
+        targetPort: 8080
+        # Without a load balancer, use a direct NodePort instead.
+        serviceType: "NodePort"
+        # To configure TLS between the ingress/load balancer and the backend, set the following:
+
+      ingress:
+        # Enter the domain name to access web nodes via a load balancer.
+        #  e.g. web.mypega.example.com
+        domain: "pega.kubernetes.docker.internal"
+        # Configure custom path for given host along with pathType. Default pathType is ImplementationSpecific.
+        # path:
+        # pathType:
+        tls:
+          # Enable TLS encryption
+          enabled: false
+      # Set resource consumption to minimal levels
+      replicas: 1
+
+  

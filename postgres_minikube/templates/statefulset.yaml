@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "postgresql-helm.fullname" . }}
+  labels:
+    app: {{ include "postgresql-helm.name" . }}
+    chart: {{ include "postgresql-helm.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  serviceName: {{ include "postgresql-helm.fullname" . }}
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "postgresql-helm.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "postgresql-helm.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      serviceAccountName: {{ include "postgresql-helm.fullname" . }}
+      containers:
+        - name: postgresql
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+              name: postgresql
+          env:
+            - name: PGDATA
+              value: "{{ .Values.persistence.mountPath }}/data"
+            - name: POSTGRES_USER
+              value: "{{ .Values.postgresqlUser }}"
+            - name: POSTGRES_PASSWORD
+              value: "{{ .Values.postgresqlPassword }}"
+            - name: POSTGRES_DB
+              value: "{{ .Values.postgresqlDatabase }}"
+          volumeMounts:
+            - name: postgresql-storage
+              mountPath: "{{ .Values.persistence.mountPath }}"
+      volumes:
+        - name: postgresql-storage
+          persistentVolumeClaim:
+            claimName: {{ include "postgresql-helm.fullname" . }}-pvc
+  volumeClaimTemplates:
+    - metadata:
+        name: postgresql-storage
+        labels:
+          app: {{ include "postgresql-helm.name" . }}
+          release: {{ .Release.Name }}
+      spec:
+        accessModes: [ "{{ .Values.persistence.accessMode }}" ]
+        resources:
+          requests:
+            storage: "{{ .Values.persistence.size }}"
